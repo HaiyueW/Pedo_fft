@@ -1,7 +1,8 @@
 package com.ece4600.mainapp;
 
-import java.util.concurrent.TimeUnit;
+import com.badlogic.gdx.audio.analysis.FFT;
 
+import java.util.concurrent.TimeUnit;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
@@ -24,10 +25,50 @@ public class PedometerService extends Service{
 	private double minPeak = 0.2;
 	public static dataArrayFloat[] array_1d = new dataArrayFloat[1];
 	
+	private double peak = 0, fftpeak = 0;
+	private static int fs = 50;
+	private int N = 64;
+	private int index = 0, freqindex = 0, j = 0;
+	private float[] arrayX = new float[N];
+	private float[] arrayY = new float[N];
+	private float[] arrayZ = new float[N];
+	private float[] arrayfftx = new float[N];
+	private float[] arrayffty = new float[N];
+	private float[] arrayfftz = new float[N];
+	private double[] new_sig;
+	
 	@Override
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public int onStartCommand(Intent intent, int flags, int startId){
+		/*Called by the system when an app component requests that a 
+		 * Service start using startService()
+		 * Once started, it can run in the background indefinitely*/
+		
+		float X = intent.getFloatExtra("X", 0.0f);
+		float Y = intent.getFloatExtra("Y", 0.0f);
+		float Z = intent.getFloatExtra("Z", 0.0f);
+		dataArrayFloat data = new dataArrayFloat(X, Y, Z);
+		array_1d[0] = data;
+		Log.i("Pedometer", String.valueOf(X) + "," + String.valueOf(Y) + ","+String.valueOf(Z));
+		
+		stepDetection();
+		
+		if (j < N) {
+			arrayX[j] = X;
+			arrayY[j] = Y;
+			arrayZ[j] = Z;
+			j++;
+			Log.i("FFT", String.valueOf(X) + "," + String.valueOf(Y) + ","+String.valueOf(Z));
+		}else{
+			new_sig = fft(N, fs, arrayX, arrayY, arrayZ);
+			j = 0;
+		}
+		
+		return super.onStartCommand(intent,flags, startId);
 	}
 	
 	public void onCreate(){
@@ -46,29 +87,7 @@ public class PedometerService extends Service{
 		deltaY = 0;
 		deltaZ = 0;
 		
-		//Handler h = new Handler(Looper.getMainLooper()); //handler to delay the scan, if can't connect, then stop attempts to scan
-		//h.postDelayed(resend, 1000);	
-		
 		super.onCreate();
-	}
-
-	public int onStartCommand(Intent intent, int flags, int startId){
-		/*Called by the system when an app component requests that a 
-		 * Service start using startService()
-		 * Once started, it can run in the background indefinitely*/
-		
-		float X = intent.getFloatExtra("X", 0.0f);
-		float Y = intent.getFloatExtra("Y", 0.0f);
-		float Z = intent.getFloatExtra("Z", 0.0f);
-		
-		dataArrayFloat data = new dataArrayFloat(X, Y, Z);
-		array_1d[0] = data;
-		
-		Log.i("Pedometer", String.valueOf(X) + "," + String.valueOf(Y) + ","+String.valueOf(Z));
-		
-		stepDetection();
-		
-		return super.onStartCommand(intent,flags, startId);
 	}
 	
 	public void onDestroy(){
@@ -212,4 +231,68 @@ public class PedometerService extends Service{
 				}
 			});
 		}
+	
+	private double[] fft(int N, int fs, float[] arrayX, float[] arrayY, float[] arrayZ) {
+		float[] fft_imx, fft_imy, fft_imz, fft_rex, fft_rey, fft_rez;
+		// float[] mod_spec =new float[array.length/2];
+		double[] fft = new double[N];
+		double fft_x, fft_y, fft_z;
+
+//		// Zero Pad signal
+//		for (int i = 0; i < N; i++) {
+//
+//			if (i < array.length) {
+//				new_arrayX[i] = array[i];
+//				new_arrayY[i] = array[i];
+//				new_arrayZ[i] = array[i];
+//			} else {
+//				new_arrayX[i] = 0;
+//				new_arrayY[i] = 0;
+//				new_arrayZ[i] = 0;
+//			}
+//		}
+
+		FFT fftx = new FFT(N, fs);
+		FFT ffty = new FFT(N, fs);
+		FFT fftz = new FFT(N, fs);
+		fftx.forward(arrayX);
+		ffty.forward(arrayY);
+		fftz.forward(arrayZ);
+		fft_imx = fftx.getImaginaryPart();
+		fft_rex = fftx.getRealPart();
+		fft_imy = ffty.getImaginaryPart();
+		fft_rey = ffty.getRealPart();
+		fft_imz = fftz.getImaginaryPart();
+		fft_rez = fftz.getRealPart();
+		for (int k = 0; k < N/2; k++) {
+			fft_x = Math.sqrt(Math.pow(fft_imx[k],2) + (Math.pow(fft_rex[k],2)));
+			fft_y = Math.sqrt(Math.pow(fft_imy[k],2) + (Math.pow(fft_rey[k],2)));
+			fft_z = Math.sqrt(Math.pow(fft_imz[k],2) + (Math.pow(fft_rez[k],2)));
+			double fftt = (Math.pow(fft_x, 2) + Math.pow(fft_y, 2) + Math.pow(fft_z, 2));
+			//double fftt = -Math.log10((1/(fs*N)) * (Math.pow(fft_x, 2) + Math.pow(fft_y, 2) + Math.pow(fft_z, 2)));
+			Log.i("fftv", "Value " + fftt + "X" + fft_x + "Y" + fft_y + "Z" + fft_z);
+			if (fftt > peak) {
+				peak = fftt;
+				index = k;
+			}
+		}
+		freqindex = index;
+		fftpeak = peak;
+		Log.i("fft", "Frequency " + freqindex + "Peak" + fftpeak);
+//		tmpi = fft.getImaginaryPart();
+//		tmpr = fft.getRealPart();
+		Handler ffts = new Handler(Looper.getMainLooper());
+		ffts.post(new Runnable(){
+			@Override
+			public void run(){
+				Intent i = new Intent("PEDOMETER_EVENT");
+				
+				i.putExtra("Frequency", freqindex);
+				i.putExtra("Peak", fftpeak);
+				sendBroadcast(i);
+			}
+		});
+		return fft;
+
+	}
 	}

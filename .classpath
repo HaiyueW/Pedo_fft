@@ -8,5 +8,7 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="lib" path="libs/disklrucache-2.0.2.jar"/>
 	<classpathentry kind="lib" path="libs/tileviewlib-1.0.13.jar"/>
+	<classpathentry kind="lib" path="libs/gdx.jar"/>
+	<classpathentry kind="lib" path="/Volumes/WHY/Android/adt-bundle-mac-x86_64-20140702/sdk/tools/support/annotations.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

@@ -208,6 +208,22 @@
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
+        <TextView
+            android:id="@+id/pedo_pre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pedo_pre"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/pedo_prenum"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pedo_prenum"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
         <TableRow
             android:id="@+id/tableRow6"
             android:layout_width="match_parent"

@@ -25,7 +25,7 @@ import android.widget.Toast;
 
 public class Pedometer extends Activity{
 	
-	private TextView currentX, currentY, currentZ, maxX, maxY, maxZ, step,speed;
+	private TextView currentX, currentY, currentZ, maxX, maxY, maxZ, step, speed, steppre;
 	Button reset, returnbutton, start, stop;
 	private int stepnum = 0, stepdetect = 0, stepthres = 0;
 	private double speednum = 0;
@@ -60,6 +60,7 @@ public class Pedometer extends Activity{
 		maxZ = (TextView) findViewById(R.id.pedo_acczmax);
 		step = (TextView) findViewById(R.id.pedo_stepnum);
 		speed = (TextView) findViewById(R.id.pedo_speednum);
+		steppre = (TextView) findViewById(R.id.pedo_prenum);
 	}
 	
 	public void bluetoothTest(){
@@ -164,6 +165,7 @@ public class Pedometer extends Activity{
 			maxZ.setText("0.0");
 			step.setText("0.0");
 			speed.setText("0.0");
+			steppre.setText("0.0");
 			startflag = false;		
 			break;
 		default:
@@ -255,6 +257,9 @@ public class Pedometer extends Activity{
 		        	float CurrentY  = intent.getFloatExtra("CurrentY", 0.0f);
 		        	float CurrentZ  = intent.getFloatExtra("CurrentZ", 0.0f);
 		        	
+		        	int Index =  intent.getIntExtra("Frequency", 0);
+		        	double Peak = intent.getDoubleExtra("Peak", 0.0d);
+		        	
 		        	if (startflag == true){
 		        	maxX.setText(Float.toString(MaxX)); // This is different from posture. Perhaps you dont have to convert your float value
 		        	maxY.setText(Float.toString(MaxY));
@@ -264,6 +269,7 @@ public class Pedometer extends Activity{
 		        	currentZ.setText(Float.toString(CurrentZ));
 		        	step.setText(Integer.toString(stepdetect));
 		        	speed.setText(Double.toString(speednum)+" steps/min");
+		        	steppre.setText(Integer.toString(Index));
 		        	}
 		        	
 		       }

@@ -80,5 +80,7 @@
     <string name="pedo_speednum">0.0</string>
     <string name="bluepedometer">Pedometer Service</string>
     <string name="bluemain">Main Menu</string>
+    <string name="pedo_pre">Step Prediction</string>
+    <string name="pedo_prenum">0.0</string>
 
 </resources>
