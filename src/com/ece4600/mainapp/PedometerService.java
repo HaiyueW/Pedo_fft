@@ -27,15 +27,14 @@ public class PedometerService extends Service{
 	
 	private double peak = 0, fftpeak = 0;
 	private static int fs = 50;
-	private int N = 64;
+	private int N = 512;
 	private int index = 0, freqindex = 0, j = 0;
 	private float[] arrayX = new float[N];
 	private float[] arrayY = new float[N];
 	private float[] arrayZ = new float[N];
-	private float[] arrayfftx = new float[N];
-	private float[] arrayffty = new float[N];
-	private float[] arrayfftz = new float[N];
 	private double[] new_sig;
+	private boolean flag;
+
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -237,7 +236,7 @@ public class PedometerService extends Service{
 		// float[] mod_spec =new float[array.length/2];
 		double[] fft = new double[N];
 		double fft_x, fft_y, fft_z;
-
+		
 //		// Zero Pad signal
 //		for (int i = 0; i < N; i++) {
 //
@@ -268,16 +267,20 @@ public class PedometerService extends Service{
 			fft_x = Math.sqrt(Math.pow(fft_imx[k],2) + (Math.pow(fft_rex[k],2)));
 			fft_y = Math.sqrt(Math.pow(fft_imy[k],2) + (Math.pow(fft_rey[k],2)));
 			fft_z = Math.sqrt(Math.pow(fft_imz[k],2) + (Math.pow(fft_rez[k],2)));
-			double fftt = (Math.pow(fft_x, 2) + Math.pow(fft_y, 2) + Math.pow(fft_z, 2));
+			double fftt = ((Math.pow(fft_x, 2) + Math.pow(fft_y, 2) + Math.pow(fft_z, 2)))/(fs*N);
 			//double fftt = -Math.log10((1/(fs*N)) * (Math.pow(fft_x, 2) + Math.pow(fft_y, 2) + Math.pow(fft_z, 2)));
 			Log.i("fftv", "Value " + fftt + "X" + fft_x + "Y" + fft_y + "Z" + fft_z);
-			if (fftt > peak) {
+			if (fftt > peak && k != 0) {
 				peak = fftt;
 				index = k;
+				Log.i("fftindex", "K " + k);
 			}
 		}
 		freqindex = index;
 		fftpeak = peak;
+		peak = 0;
+		index = 0;
+		flag = true;
 		Log.i("fft", "Frequency " + freqindex + "Peak" + fftpeak);
 //		tmpi = fft.getImaginaryPart();
 //		tmpr = fft.getRealPart();
@@ -288,8 +291,9 @@ public class PedometerService extends Service{
 				Intent i = new Intent("PEDOMETER_EVENT");
 				
 				i.putExtra("Frequency", freqindex);
-				i.putExtra("Peak", fftpeak);
+				i.putExtra("Flag", flag);
 				sendBroadcast(i);
+				flag = false;
 			}
 		});
 		return fft;

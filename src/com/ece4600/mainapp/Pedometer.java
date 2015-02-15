@@ -27,10 +27,10 @@ public class Pedometer extends Activity{
 	
 	private TextView currentX, currentY, currentZ, maxX, maxY, maxZ, step, speed, steppre;
 	Button reset, returnbutton, start, stop;
-	private int stepnum = 0, stepdetect = 0, stepthres = 0;
-	private double speednum = 0;
+	private int stepnum = 0, stepdetect = 0, stepthres = 0, freqindex = 0;
+	private double speednum = 0, stepprenum = 0, freq = 0, steppretotal = 0;
 	private long timedetect = 0, timeSecondsstart = 0, timestart = 0, timeSecondsstop = 0, timestop = 0;
-	private boolean startflag = false;
+	private boolean startflag = false, fftflag = false;
 	private BluetoothAdapter myBluetoothAdapter;
 	
 	@Override
@@ -129,6 +129,7 @@ public class Pedometer extends Activity{
 			stepthres = stepnum;
 			speednum = 0;
 			startflag = true;
+			steppretotal = 0;
 			final Toast toast = Toast.makeText(getApplicationContext(), "Step Detection Start", Toast.LENGTH_SHORT);
 		    toast.show();
 		    Handler handler = new Handler();
@@ -257,8 +258,15 @@ public class Pedometer extends Activity{
 		        	float CurrentY  = intent.getFloatExtra("CurrentY", 0.0f);
 		        	float CurrentZ  = intent.getFloatExtra("CurrentZ", 0.0f);
 		        	
-		        	int Index =  intent.getIntExtra("Frequency", 0);
-		        	double Peak = intent.getDoubleExtra("Peak", 0.0d);
+		        	freqindex =  intent.getIntExtra("Frequency", freqindex);
+		        	fftflag =  intent.getBooleanExtra("Flag", fftflag);
+		        	if (fftflag == true){
+			        	freq = freqindex*50/512;		        	
+			        	stepprenum = freq*10.24;
+			        	steppretotal = steppretotal + stepprenum;
+			        	fftflag = false;
+						Log.i("FFFFF", "Stepone"+ stepprenum + "steptotal"+ steppretotal + "Freq" + freq);
+		        	}
 		        	
 		        	if (startflag == true){
 		        	maxX.setText(Float.toString(MaxX)); // This is different from posture. Perhaps you dont have to convert your float value
@@ -269,7 +277,9 @@ public class Pedometer extends Activity{
 		        	currentZ.setText(Float.toString(CurrentZ));
 		        	step.setText(Integer.toString(stepdetect));
 		        	speed.setText(Double.toString(speednum)+" steps/min");
-		        	steppre.setText(Integer.toString(Index));
+		        		if (freqindex != 0 ){
+		        			steppre.setText(Double.toString(steppretotal));
+		        		}
 		        	}
 		        	
 		       }
