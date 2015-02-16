@@ -28,7 +28,7 @@ public class Pedometer extends Activity{
 	private TextView currentX, currentY, currentZ, maxX, maxY, maxZ, step, speed, steppre;
 	Button reset, returnbutton, start, stop;
 	private int stepnum = 0, stepdetect = 0, stepthres = 0, freqindex = 0;
-	private double speednum = 0, stepprenum = 0, freq = 0, steppretotal = 0;
+	private double speednum = 0, stepprenum = 0, freq = 0, steppretotal = 0, steppreav = 0;
 	private long timedetect = 0, timeSecondsstart = 0, timestart = 0, timeSecondsstop = 0, timestop = 0;
 	private boolean startflag = false, fftflag = false;
 	private BluetoothAdapter myBluetoothAdapter;
@@ -264,8 +264,9 @@ public class Pedometer extends Activity{
 			        	freq = freqindex*50/512;		        	
 			        	stepprenum = freq*10.24;
 			        	steppretotal = steppretotal + stepprenum;
+			        	steppreav = (steppretotal+stepdetect)/2;
 			        	fftflag = false;
-						Log.i("FFFFF", "Stepone"+ stepprenum + "steptotal"+ steppretotal + "Freq" + freq);
+						Log.i("FFFFF", "Stepone"+ stepprenum + "steptotal"+ steppretotal + "Freq" + freq + "Ave" + steppreav);
 		        	}
 		        	
 		        	if (startflag == true){
@@ -278,7 +279,7 @@ public class Pedometer extends Activity{
 		        	step.setText(Integer.toString(stepdetect));
 		        	speed.setText(Double.toString(speednum)+" steps/min");
 		        		if (freqindex != 0 ){
-		        			steppre.setText(Double.toString(steppretotal));
+		        			steppre.setText(Double.toString(steppreav));
 		        		}
 		        	}
 		        	
