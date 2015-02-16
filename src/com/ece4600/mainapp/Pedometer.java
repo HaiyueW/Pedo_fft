@@ -129,6 +129,7 @@ public class Pedometer extends Activity{
 			stepthres = stepnum;
 			speednum = 0;
 			startflag = true;
+			fftflag = true;
 			steppretotal = 0;
 			final Toast toast = Toast.makeText(getApplicationContext(), "Step Detection Start", Toast.LENGTH_SHORT);
 		    toast.show();
